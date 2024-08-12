@@ -1,24 +1,92 @@
-function FruitListCard({ fruit }) {
+//main.js
+const { useState, useEffect } = React;
+
+const BASE_URL = "http://localhost:9000";
+
+function translateStatusToErrorMessage(status) {
+  switch (status) {
+    case 401:
+      return "Please sign in again.";
+    case 403:
+      return "You do not have permission to view the data requested.";
+    default:
+      return "There was an error saving or retrieving data.";
+  }
+}
+
+async function checkStatus(response) {
+  if (response.ok) return response;
+
+  const httpError = {
+    status: response.status,
+    statusText: response.statusText,
+    url: response.url,
+    body: await response.text(),
+  };
+  console.log(`http error status: ${JSON.stringify(httpError, null, 1)}`);
+
+  let errorMessage = translateStatusToErrorMessage(httpError.status);
+  throw new Error(errorMessage);
+}
+
+function parseJSON(response) {
+  return response.json();
+}
+
+function delay(ms) {
+  return function (x) {
+    return new Promise((resolve) => setTimeout(() => resolve(x), ms));
+  };
+}
+
+const url = `${BASE_URL}/teams`;
+const teamAPI = {
+  list() {
+    return fetch(url).then(checkStatus).then(parseJSON);
+  },
+};
+
+function TeamList() {
+  const [busy, setBusy] = useState(false);
+  const [teams, setTeams] = useState([]);
+  const [errorMessage, setErrorMessage] = useState(undefined);
+
+  async function loadTeams() {
+    try {
+      setBusy(true);
+      let data = await teamAPI.list();
+      setTeams(data);
+    } catch (error) {
+      setErrorMessage(error.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  useEffect(function () {
+    loadTeams();
+  }, []);
+
   return (
-    <div>
-      <strong>{fruit.name}</strong>
-      <p> ID: {fruit.id}</p>
-      <p> Color: {fruit.color}</p>
+    <div className="list mt-2">
+      {busy && <p>Loading...</p>}
+      {errorMessage && <div className="alert alert-danger">{errorMessage}</div>}
+      {teams?.map((team) => (
+        <div className="card p-4" key={team.name}>
+          <strong>{team.name}</strong>
+          <div>{team.division}</div>
+        </div>
+      ))}
     </div>
   );
 }
 
-function FruitList(props) {
-  const fruitListItems = props.fruits.map((fruit) => <FruitListCard key={fruit.id} fruit={fruit} />);
-  return <div>{fruitListItems}</div>;
+function App() {
+  return (
+    <div className="container">
+      <TeamList />
+    </div>
+  );
 }
 
-const data = [
-  { id: 1, name: "apple", color: "red" },
-  { id: 2, name: "orange", color: "orange" },
-  { id: 3, name: "blueberry", color: "blue" },
-  { id: 4, name: "banana", color: "yello" },
-  { id: 5, name: "kiwi", color: "green" },
-];
-
-ReactDOM.createRoot(document.getElementById("root")).render(<FruitList fruits={data} />);
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
