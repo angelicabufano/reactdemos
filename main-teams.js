@@ -17,34 +17,74 @@ const teamAPI = {
   },
 };
 
+function HomePage() {
+  return <h2>Home</h2>;
+}
+
+function TeamsPage() {
+  return <h2>Teams</h2>
+}
+
+function PlayersPage() {
+  return <h2>Players</h2>
+}
+
 function App() {
-  const [teams, setTeams] = useState([]);
-  const [busy, setBusy] = useState(false);
-
-  async function loadTeams() {
-    setBusy(true);
-    let data = await teamAPI.list();
-    setBusy(false);
-    setTeams(data);
-  }
-
-  useEffect(function () {
-    loadTeams();
-  }, []);
-
   return (
-    <div>
-      <div className="list">
-        {busy && <div>Loading...</div>}
-        {teams.map((teams) => (
-          <div className="card" key={teams.name}>
-            <strong>{teams.name}</strong>
-            <div>{teams.division}</div>
-          </div>
-        ))}
+    <Router>
+      <div >
+        <nav className="container mt-4">
+          <ul className="nav nav-pills">
+            <li className="nav-item">
+              <NavLink className="nav-link" to="/home">Home</NavLink>
+            </li>
+            <li className="nav-item">
+              <NavLink className="nav-link"  to="/teams">Teams</NavLink>
+            </li>
+            <li className="nav-item">
+              <NavLink className="nav-link" to="/players">Players</NavLink>
+            </li>
+          </ul>
+        </nav>
+
+        <div className="container mt-4">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="teams" element={<Teams />} />
+            <Route path="players" element={<Players />} />
+          </Routes>
+        </div>
       </div>
-    </div>
+    </Router>
   );
+  
+  // const [teams, setTeams] = useState([]);
+  // const [busy, setBusy] = useState(false);
+
+  // async function loadTeams() {
+  //   setBusy(true);
+  //   let data = await teamAPI.list();
+  //   setBusy(false);
+  //   setTeams(data);
+  // }
+
+  // useEffect(function () {
+  //   loadTeams();
+  // }, []);
+
+  // return (
+  //   <div>
+  //     <div className="list">
+  //       {busy && <div>Loading...</div>}
+  //       {teams.map((teams) => (
+  //         <div className="card" key={teams.name}>
+  //           <strong>{teams.name}</strong>
+  //           <div>{teams.division}</div>
+  //         </div>
+  //       ))}
+  //     </div>
+  //   </div>
+  // );
 }
 ReactDOM.createRoot(document.getElementById("root")).render(<App />);
 
